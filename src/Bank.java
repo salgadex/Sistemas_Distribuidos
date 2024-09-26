@@ -5,43 +5,34 @@ public class Bank {
 
     private static class Account {
         private int balance;
-        private final Lock lock = new ReentrantLock();
         Account(int balance) { this.balance = balance; }
         int balance() { return balance; }
 
         boolean deposit(int value) {
-            lock.lock();
-            try {
                 balance += value;
                 return true;
-            }
-            finally {
-                lock.unlock();
-            }
 
         }
         boolean withdraw(int value) {
-            lock.lock();
-            try {
                 if (value > balance)
                     return false;
                 balance -= value;
                 return true;
-            }
-            finally {
-                lock.unlock();
-            }
         }
+
+
     }
 
     // Bank slots and vector of accounts
     private int slots;
     private Account[] av;
+    private Lock lock;
 
     public Bank(int n) {
         slots=n;
         av=new Account[slots];
         for (int i=0; i<slots; i++) av[i]=new Account(0);
+        this.lock = new ReentrantLock();
     }
 
     // Account balance
@@ -55,13 +46,27 @@ public class Bank {
     public boolean deposit(int id, int value) {
         if (id < 0 || id >= slots)
             return false;
-        return av[id].deposit(value);
+        lock.lock();
+        try {
+            return av[id].deposit(value);
+        }
+        finally {
+            lock.unlock();
+        }
     }
 
     // Withdraw; fails if no such account or insufficient balance
     public boolean withdraw(int id, int value) {
         if (id < 0 || id >= slots)
             return false;
-        return av[id].withdraw(value);
+        lock.lock();
+        try {
+            return av[id].withdraw(value);
+        }
+        finally {
+            lock.unlock();
+        }
     }
+
+
 }
