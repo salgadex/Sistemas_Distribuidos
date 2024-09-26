@@ -68,5 +68,35 @@ public class Bank {
         }
     }
 
+    public boolean transfer (int from, int to, int value) {
+        if((from < 0 || from >= slots) || (to < 0 || to >= slots)) {
+            return false;
+        }
+        else {
+            lock.lock();
+            try {
+                return this.withdraw(from, value) && this.deposit(to, value);
+            }
+
+            finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    public int totalBalance() {
+       int total=0;
+       lock.lock();
+       try {
+           for (int i = 0; i < slots; i++) {
+               total += av[i].balance();
+           }
+           return total;
+       }
+       finally {
+           lock.unlock();
+       }
+    }
+
 
 }
