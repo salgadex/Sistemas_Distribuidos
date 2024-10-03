@@ -156,19 +156,14 @@ class Bank {
     // fails if either account does not exist or insufficient balance
     public boolean transfer(int from, int to, int value) {
         Account cfrom, cto;
-        Account firstLock;
-        Account secondLock;
-
         this.lockBank.lock();
         try {
             cfrom = map.get(from);
             cto = map.get(to);
             if (cfrom == null || cto == null)
                 return false;
-            firstLock = (from < to) ? cfrom : cto;
-            secondLock = (from < to) ? cto : cfrom;
-            firstLock.lockAccount.lock();
-            secondLock.lockAccount.lock();
+            cfrom.lockAccount.lock();
+            cto.lockAccount.lock();
         }
 
         finally {
@@ -180,8 +175,8 @@ class Bank {
         }
 
         finally {
-            firstLock.lockAccount.unlock();
-            secondLock.lockAccount.unlock();
+            cfrom.lockAccount.unlock();
+            cto.lockAccount.unlock();
         }
     }
 
