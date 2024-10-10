@@ -11,7 +11,7 @@ public class Barrier {
 
 
     public Barrier(int N) {
-        this.N = N;
+        this.N = 5;
         this.count = 0;
         this.l = new ReentrantLock();
         this.c = l.newCondition();
@@ -22,22 +22,20 @@ public class Barrier {
         l.lock();
         try {
             count++;
-
-            if (count == N) {
-                c.signalAll();
-            }
-            else {
-                while(count < N)
-                {
+            if(count < N) {
+                while(count < N) {
+                    System.out.println("Threads á espera:" + count);
                     c.await();
                 }
             }
+            else{
+                c.signalAll();
+                System.out.println("Threads a passar");
+            }
         }
-
         finally {
             l.unlock();
         }
-
     }
 }
 

@@ -9,9 +9,7 @@ public class BarrierTest {
 
         public void run() {
             try {
-                System.out.println(Thread.currentThread().getName() + " chegou à barreira.");
                 barrier.espera();
-                System.out.println(Thread.currentThread().getName() + " passou pela barreira.");
             }
             catch (InterruptedException e) {
                 throw new RuntimeException(e);
@@ -22,7 +20,6 @@ public class BarrierTest {
     public static void main(String[] args) {
         int numThreads = 5;
         Barrier barrier = new Barrier(numThreads);
-
         Thread[] threads = new Thread[numThreads];
 
         // Cria as threads
@@ -32,6 +29,15 @@ public class BarrierTest {
 
         for (int i = 0; i < numThreads; i++) {
             threads[i].start();
+        }
+
+        for (int i = 0; i < numThreads; i++) {
+            try{
+                threads[i].join();
+            }
+            catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
