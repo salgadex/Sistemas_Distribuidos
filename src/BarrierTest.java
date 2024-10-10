@@ -18,7 +18,7 @@ public class BarrierTest {
     }
 
     public static void main(String[] args) {
-        int numThreads = 5;
+        int numThreads = 10;
         Barrier barrier = new Barrier(numThreads);
         Thread[] threads = new Thread[numThreads];
 

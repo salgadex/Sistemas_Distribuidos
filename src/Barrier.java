@@ -5,9 +5,10 @@ import java.util.concurrent.locks.Condition;
 public class Barrier {
 
     private int N;
-    private int count = 0;
-    private Lock l = new ReentrantLock();
-    private Condition c = l.newCondition();
+    private int count ;
+    private Lock l;
+    private Condition c;
+    private int generation;
 
 
     public Barrier(int N) {
@@ -15,22 +16,27 @@ public class Barrier {
         this.count = 0;
         this.l = new ReentrantLock();
         this.c = l.newCondition();
+        this.generation = 0;
     }
 
     void espera() throws InterruptedException {
 
         l.lock();
         try {
+            int currentGeneration = generation;
             count++;
             if(count < N) {
-                while(count < N) {
-                    System.out.println("Threads á espera:" + count);
+                while(currentGeneration == generation) {
+                    System.out.println("Threads á espera: " + count + " na geração " + generation);
                     c.await();
                 }
             }
             else{
                 c.signalAll();
-                System.out.println("Threads a passar");
+                count = 0;
+                generation++;
+                System.out.println("Barreira completada, todas as threads estão a passar para a próxima fase.");
+                System.out.println(" ");
             }
         }
         finally {
