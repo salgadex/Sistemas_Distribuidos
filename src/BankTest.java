@@ -55,8 +55,8 @@ public class BankTest {
         System.out.println("Saldo Final Após Transferências: " + finalBalance);
 
         for(int i = 3; i < N; i++) {
-           int balanceAfterClosedAccounts = b.closeAccount(accountIds[i]);
-           System.out.println("Conta: " + accountIds[i] + " fechada com saldo: " + balanceAfterClosedAccounts );
+            int balanceAfterClosedAccounts = b.closeAccount(accountIds[i]);
+            System.out.println("Conta: " + accountIds[i] + " fechada com saldo: " + balanceAfterClosedAccounts );
         }
 
         System.out.println("Saldo Total Final: " + b.totalBalance(accountIds));

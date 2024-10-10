@@ -180,25 +180,33 @@ class Bank {
         }
     }
 
-    // sum of balances in set of accounts; 0 if some does not exist
     public int totalBalance(int[] ids) {
-        ArrayList<Integer> accountsLocked= new ArrayList(ids.length);
-        this.lockBank.readLock().lock();
+        ArrayList<Account> lockedAccounts = new ArrayList<>();
         int total = 0;
-        for (int i : ids) {
-            int id = ids[i];
-            if(this.map.containsKey(id)) {
-             map.get(id).lockAccount.readLock().lock();
-             accountsLocked.add(id);
+
+        this.lockBank.readLock().lock();
+        try {
+            for (int id : ids) {
+                Account account = map.get(id);
+                if (account != null) {
+                    account.lockAccount.readLock().lock();
+                    lockedAccounts.add(account);
+                }
+            }
+        } finally {
+            this.lockBank.readLock().unlock();
+        }
+
+        try {
+            for (Account account : lockedAccounts) {
+                total += account.balance();
+            }
+        } finally {
+            // Libera os bloqueios de leitura das contas
+            for (Account account : lockedAccounts) {
+                account.lockAccount.readLock().unlock();
             }
         }
-        this.lockBank.readLock().lock();
-        for(int id : accountsLocked) {
-            total += map.get(id).balance();
-            map.get(id).lockAccount.readLock().unlock();
-        }
-
         return total;
     }
-
 }
