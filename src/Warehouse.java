@@ -21,30 +21,36 @@ public class Warehouse {
     }
 
     public void supply(String item, int quantity) {
-        l.lock();
+        this.l.lock();
         try {
             Product p = this.get(item);
             p.quantity += quantity;
             p.isEmpty.signalAll();
         }
         finally {
-            l.unlock();
+            this.l.unlock();
         }
     }
 
-    public void consume(Set<String> items) throws InterruptedException {
-        l.lock();
+    public void consume(String[] items) throws InterruptedException {
+        this.l.lock();
+        int i = 0;
         try {
-            for (String item : items) {
-                Product p = this.get(item);
+            while (i < items.length) {
+                Product p = this.get(items[i]);
+                i++;
                 while (p.quantity == 0) {
                     p.isEmpty.await();
+                    i = 0;
                 }
+            }
+            for (String item : items) {
+                Product p = this.get(item);
                 p.quantity--;
             }
         }
         finally {
-            l.unlock();
+            this.l.unlock();
         }
     }
 
