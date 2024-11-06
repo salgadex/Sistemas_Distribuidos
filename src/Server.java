@@ -1,66 +1,51 @@
-import java.net.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.io.IOException;
+import java.net.Socket;
 
 public class Server {
-    private Socket socket = null;
-    private ServerSocket server = null;
-    private DataInputStream in = null;
-    private DataOutputStream out = null;
 
-    // Construtor com porta
-    public Server(int port) {
-        try {
-            server = new ServerSocket(port);
-            System.out.println("Server started");
-            System.out.println("Waiting for a client ...");
+    public static void main(String[] args) throws IOException {
+        ServerSocket sSock = new ServerSocket(12345);
+        int sum, n;
 
-            // Aceita a conexão do cliente
-            socket = server.accept();
-            System.out.println("Client accepted");
+        while (true) {
+            Socket clSock = sSock.accept();
+            BufferedReader in = new BufferedReader(new InputStreamReader(clSock.getInputStream()));
+            PrintWriter out = new PrintWriter(clSock.getOutputStream());
 
-            in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-            out = new DataOutputStream(socket.getOutputStream());
+            sum = 0;
+            n = 0;
+            String line = "";
 
-            int sum = 0;
-            int count = 0;
+            while ((line = in.readLine()) != null) {
 
-            while (true) {
                 try {
-                    // Lê a entrada do cliente
-                    String message = in.readUTF();
+                    sum += Integer.parseInt(line);
+                    n++;
+                } catch (NumberFormatException e) {
 
-                    // Verifica se é o sinal de fim
-                    if (message.equals("EOF")) {
-                        double average = count > 0 ? (double) sum / count : 0;
-                        out.writeUTF("Média dos números recebidos: " + average);
-                        break;
-                    }
-
-                    // Caso contrário, trata como um número e atualiza a soma e contagem
-                    int number = Integer.parseInt(message);
-                    sum += number;
-                    count++;
-
-                    // Envia a soma acumulada ao cliente
-                    out.writeUTF("Soma acumulada: " + sum);
-                } catch (IOException e) {
-                    System.out.println(e);
-                    break;
                 }
+                out.println(sum);
+                out.flush();
             }
 
-            System.out.println("Closing connection");
+            if (n > 0) {
+                out.println(sum / n);
+                out.flush();
+            } else {
+                out.println(0);
+                out.flush();
+            }
 
-            // Fecha as conexões
-            socket.close();
-            in.close();
-            out.close();
-        } catch (IOException i) {
-            System.out.println(i);
+            clSock.shutdownOutput();
+            clSock.shutdownInput();
+            clSock.close();
+
         }
     }
-
-    public static void main(String args[]) {
-        Server server = new Server(5000);
-    }
 }
+
+//Thread thread = new Thread(new Runn(clSock));
