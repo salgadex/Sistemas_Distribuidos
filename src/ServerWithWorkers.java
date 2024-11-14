@@ -1,5 +1,3 @@
-
-
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -11,15 +9,28 @@ public class ServerWithWorkers {
 
         while(true) {
             Socket s = ss.accept();
-            FramedConnection c = new FramedConnection(s);
+            TaggedConnection c = new TaggedConnection(s);
 
             Runnable worker = () -> {
                 try (c) {
                     for (;;) {
-                        byte[] b = c.receive();
-                        String msg = new String(b);
-                        System.out.println("Replying to: " + msg);
-                        c.send(msg.toUpperCase().getBytes());
+                        TaggedConnection.Frame frame = c.receive();
+                        int tag = frame.lag;
+                        String data = new String(frame.data);
+                        if (tag == 0)
+                            System.out.println("Got one-way: " + data);
+                        else if (tag % 2 == 1) {
+                            System.out.println("Replying to: " + data);
+                            c.send(tag, data.toUpperCase().getBytes());
+                        } else {
+                            for (int i = 0; i < data.length(); ++i) {
+                                String str = data.substring(i, i+1);
+                                System.out.println("Streaming: " + str);
+                                c.send(tag, str.getBytes());
+                                Thread.sleep(100);
+                            }
+                            c.send(tag, new byte[0]);
+                        }
                     }
                 } catch (Exception ignored) { }
             };
@@ -27,6 +38,7 @@ public class ServerWithWorkers {
             for (int i = 0; i < WORKERS_PER_CONNECTION; ++i)
                 new Thread(worker).start();
         }
+
     }
 }
 
